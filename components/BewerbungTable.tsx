@@ -5,37 +5,15 @@ import { updateStatus, deleteBewerbung } from '@/app/actions'
 import type { Bewerbung, Status } from '@/lib/supabase'
 import { findRichtung } from '@/lib/richtungen'
 
-// Name + Nachname für die Unterschrift / Dateinamen
+// Name für die Unterschrift in der E-Mail
 const BEWERBER_NAME = 'Assia Ezzerouali'
 
-// Lädt eine Datei aus dem öffentlichen /dokumente-Ordner herunter
-function downloadDatei(href: string, delay: number) {
-  setTimeout(() => {
-    const a = document.createElement('a')
-    a.href = encodeURI(href)
-    a.download = href.split('/').pop() ?? 'datei.pdf'
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-  }, delay)
-}
-
-// Bereitet die komplette Bewerbungs-E-Mail vor:
-// 1. lädt die passenden PDFs herunter, 2. öffnet Gmail mit fertigem Text
+// Öffnet Gmail mit fertigem Betreff und Text.
+// Die Dateien (Anschreiben, Lebenslauf, Zeugnisse) hängt Rihab selbst an.
 function emailVorbereiten(b: Bewerbung) {
   const r = findRichtung(b.richtung)
   const richtungName = r ? r.voll : b.richtung
 
-  // Dateien zum Herunterladen sammeln
-  const dateien: string[] = []
-  if (r) {
-    dateien.push(`/dokumente/Anschreiben_Assia_${r.key}.pdf`)
-    dateien.push(`/dokumente/Lebenslauf_Assia_${r.key}.pdf`)
-  }
-  dateien.push('/dokumente/Zeugnisse und Bescheinigungen.pdf')
-  dateien.forEach((href, i) => downloadDatei(href, i * 700))
-
-  // E-Mail-Text bauen
   const anrede = b.ansprechperson?.trim()
     ? `Sehr geehrte/r ${b.ansprechperson.trim()},`
     : 'Sehr geehrte Damen und Herren,'
@@ -65,8 +43,7 @@ ${BEWERBER_NAME}`
     `&su=${encodeURIComponent(betreff)}` +
     `&body=${encodeURIComponent(body)}`
 
-  // Gmail erst öffnen, nachdem die Downloads gestartet wurden
-  setTimeout(() => window.open(url, '_blank'), dateien.length * 700 + 300)
+  window.open(url, '_blank')
 }
 
 const STATUS_LABELS: Record<Status, string> = {
@@ -152,6 +129,7 @@ export default function BewerbungTable({ data }: { data: Bewerbung[] }) {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
+                <th className="text-left px-4 py-3 font-semibold text-gray-600">Senden</th>
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Unternehmen</th>
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Ausbildung</th>
                 <th className="text-left px-4 py-3 font-semibold text-gray-600">Stadt</th>
@@ -167,6 +145,15 @@ export default function BewerbungTable({ data }: { data: Bewerbung[] }) {
             <tbody className="divide-y divide-gray-100">
               {filtered.map((b) => (
                 <tr key={b.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => emailVorbereiten(b)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                      title="Gmail mit fertigem Betreff und Text öffnen"
+                    >
+                      📧 E-Mail
+                    </button>
+                  </td>
                   <td className="px-4 py-3 font-medium text-gray-800">
                     {b.unternehmen || <span className="text-gray-400 italic">–</span>}
                   </td>
@@ -209,23 +196,14 @@ export default function BewerbungTable({ data }: { data: Bewerbung[] }) {
                     {b.notizen || <span className="text-gray-400 italic">–</span>}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => emailVorbereiten(b)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
-                        title="PDFs herunterladen und Gmail mit fertigem Text öffnen"
-                      >
-                        📧 E-Mail
-                      </button>
-                      <button
-                        onClick={() => handleDelete(b.id)}
-                        disabled={deleting === b.id}
-                        className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 text-lg"
-                        title="Löschen"
-                      >
-                        ×
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleDelete(b.id)}
+                      disabled={deleting === b.id}
+                      className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 text-lg"
+                      title="Löschen"
+                    >
+                      ×
+                    </button>
                   </td>
                 </tr>
               ))}
