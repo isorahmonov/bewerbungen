@@ -12,6 +12,7 @@ export async function addBewerbung(formData: FormData) {
   const notizen = formData.get('notizen') as string | null
   const email = formData.get('email') as string | null
   const ansprechperson = formData.get('ansprechperson') as string | null
+  const beginn = formData.get('beginn') as string | null
 
   await supabase.from('bewerbungen').insert({
     unternehmen: unternehmen || null,
@@ -23,6 +24,7 @@ export async function addBewerbung(formData: FormData) {
     notizen: notizen || null,
     email: email || null,
     ansprechperson: ansprechperson || null,
+    beginn: beginn || null,
   })
 
   revalidatePath('/')

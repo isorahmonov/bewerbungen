@@ -19,4 +19,5 @@ export interface Bewerbung {
   notizen: string | null
   email: string | null
   ansprechperson: string | null
+  beginn: string | null
 }

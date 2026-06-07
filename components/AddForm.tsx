@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { addBewerbung } from '@/app/actions'
+import { RICHTUNGEN } from '@/lib/richtungen'
 
 export default function AddForm() {
   const [open, setOpen] = useState(false)
@@ -44,13 +45,21 @@ export default function AddForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Ausbildungsrichtung <span className="text-red-500">*</span>
               </label>
-              <input
+              <select
                 name="richtung"
-                type="text"
                 required
-                placeholder="z.B. Fachinformatiker"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+                defaultValue=""
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="" disabled>
+                  Bitte wählen…
+                </option>
+                {RICHTUNGEN.map((r) => (
+                  <option key={r.key} value={r.voll}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -73,6 +82,17 @@ export default function AddForm() {
                 type="date"
                 required
                 defaultValue={new Date().toISOString().split('T')[0]}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Ausbildungsbeginn <span className="text-gray-400 font-normal">(optional, z.B. 01.09.2026)</span>
+              </label>
+              <input
+                name="beginn"
+                type="text"
+                placeholder="z.B. 01.09.2026 oder nächstmöglich"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

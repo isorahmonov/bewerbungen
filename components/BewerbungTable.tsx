@@ -3,6 +3,71 @@
 import { useState } from 'react'
 import { updateStatus, deleteBewerbung } from '@/app/actions'
 import type { Bewerbung, Status } from '@/lib/supabase'
+import { findRichtung } from '@/lib/richtungen'
+
+// Name + Nachname für die Unterschrift / Dateinamen
+const BEWERBER_NAME = 'Assia Ezzerouali'
+
+// Lädt eine Datei aus dem öffentlichen /dokumente-Ordner herunter
+function downloadDatei(href: string, delay: number) {
+  setTimeout(() => {
+    const a = document.createElement('a')
+    a.href = encodeURI(href)
+    a.download = href.split('/').pop() ?? 'datei.pdf'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  }, delay)
+}
+
+// Bereitet die komplette Bewerbungs-E-Mail vor:
+// 1. lädt die passenden PDFs herunter, 2. öffnet Gmail mit fertigem Text
+function emailVorbereiten(b: Bewerbung) {
+  const r = findRichtung(b.richtung)
+  const richtungName = r ? r.voll : b.richtung
+
+  // Dateien zum Herunterladen sammeln
+  const dateien: string[] = []
+  if (r) {
+    dateien.push(`/dokumente/Anschreiben_Assia_${r.key}.pdf`)
+    dateien.push(`/dokumente/Lebenslauf_Assia_${r.key}.pdf`)
+  }
+  dateien.push('/dokumente/Zeugnisse und Bescheinigungen.pdf')
+  dateien.forEach((href, i) => downloadDatei(href, i * 700))
+
+  // E-Mail-Text bauen
+  const anrede = b.ansprechperson?.trim()
+    ? `Sehr geehrte/r ${b.ansprechperson.trim()},`
+    : 'Sehr geehrte Damen und Herren,'
+
+  const unternehmenTeil = b.unternehmen?.trim()
+    ? `in Ihrem Unternehmen ${b.unternehmen.trim()} in ${b.stadt}`
+    : `in Ihrem Unternehmen in ${b.stadt}`
+
+  const beginnTeil = b.beginn?.trim() ? ` zum ${b.beginn.trim()}` : ''
+
+  const betreff = `Bewerbung um einen Ausbildungsplatz als ${richtungName}`
+
+  const body = `${anrede}
+
+hiermit bewerbe ich mich um einen Ausbildungsplatz als ${richtungName} ${unternehmenTeil}${beginnTeil}.
+
+Anbei sende ich Ihnen mein Anschreiben, meinen Lebenslauf sowie meine Zeugnisse und Bescheinigungen.
+
+Ich freue mich auf eine positive Rückmeldung.
+
+Mit freundlichen Grüßen
+${BEWERBER_NAME}`
+
+  const url =
+    `https://mail.google.com/mail/?view=cm&fs=1` +
+    `&to=${encodeURIComponent(b.email ?? '')}` +
+    `&su=${encodeURIComponent(betreff)}` +
+    `&body=${encodeURIComponent(body)}`
+
+  // Gmail erst öffnen, nachdem die Downloads gestartet wurden
+  setTimeout(() => window.open(url, '_blank'), dateien.length * 700 + 300)
+}
 
 const STATUS_LABELS: Record<Status, string> = {
   ausstehend: 'Ausstehend',
@@ -144,14 +209,23 @@ export default function BewerbungTable({ data }: { data: Bewerbung[] }) {
                     {b.notizen || <span className="text-gray-400 italic">–</span>}
                   </td>
                   <td className="px-4 py-3">
-                    <button
-                      onClick={() => handleDelete(b.id)}
-                      disabled={deleting === b.id}
-                      className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 text-lg"
-                      title="Löschen"
-                    >
-                      ×
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => emailVorbereiten(b)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                        title="PDFs herunterladen und Gmail mit fertigem Text öffnen"
+                      >
+                        📧 E-Mail
+                      </button>
+                      <button
+                        onClick={() => handleDelete(b.id)}
+                        disabled={deleting === b.id}
+                        className="text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 text-lg"
+                        title="Löschen"
+                      >
+                        ×
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

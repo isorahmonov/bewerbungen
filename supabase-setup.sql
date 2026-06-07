@@ -10,13 +10,15 @@ create table bewerbungen (
   link text,
   notizen text,
   email text,
-  ansprechperson text
+  ansprechperson text,
+  beginn text
 );
 
 -- Falls die Tabelle bereits existiert, Spalten und Status nachträglich hinzufügen:
 -- alter table bewerbungen add column if not exists notizen text;
 -- alter table bewerbungen add column if not exists email text;
 -- alter table bewerbungen add column if not exists ansprechperson text;
+-- alter table bewerbungen add column if not exists beginn text;
 -- alter table bewerbungen drop constraint if exists bewerbungen_status_check;
 -- alter table bewerbungen add constraint bewerbungen_status_check check (status in ('ausstehend', 'zusage', 'absage', 'email_senden'));
 
