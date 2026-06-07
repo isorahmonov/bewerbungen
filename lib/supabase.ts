@@ -5,7 +5,7 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'placeholder'
 
 export const supabase = createClient(supabaseUrl, supabaseKey)
 
-export type Status = 'ausstehend' | 'zusage' | 'absage'
+export type Status = 'ausstehend' | 'zusage' | 'absage' | 'email_senden'
 
 export interface Bewerbung {
   id: number
@@ -16,6 +16,7 @@ export interface Bewerbung {
   datum: string
   status: Status
   link: string | null
-  bewerber: string
-  von: string
+  notizen: string | null
+  email: string | null
+  ansprechperson: string | null
 }
