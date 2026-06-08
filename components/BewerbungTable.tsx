@@ -38,12 +38,11 @@ Mit freundlichen Grüßen
 ${BEWERBER_NAME}`
 
   const url =
-    `https://mail.google.com/mail/?view=cm&fs=1` +
-    `&to=${encodeURIComponent(b.email ?? '')}` +
-    `&su=${encodeURIComponent(betreff)}` +
+    `mailto:${encodeURIComponent(b.email ?? '')}` +
+    `?subject=${encodeURIComponent(betreff)}` +
     `&body=${encodeURIComponent(body)}`
 
-  window.open(url, '_blank')
+  window.location.href = url
 }
 
 const STATUS_LABELS: Record<Status, string> = {
